@@ -44,6 +44,7 @@ export function CatchBoundary() {
   throw new Error(`Unexpected caught response with status: ${caught.status}`);
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: { error: Error }) {
+  console.error(error);
   return <div className="error-container">I did a whoopsies.</div>;
 }

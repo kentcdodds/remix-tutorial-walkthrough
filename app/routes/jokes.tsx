@@ -30,7 +30,7 @@ export let loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function JokesRoute() {
-  let data = useLoaderData();
+  let data = useLoaderData<LoaderData>();
 
   return (
     <div className="jokes-layout">
@@ -64,7 +64,9 @@ export default function JokesRoute() {
             <ul>
               {data.jokeListItems.map((j) => (
                 <li key={j.id}>
-                  <Link to={j.id}>{j.name}</Link>
+                  <Link prefetch="intent" to={j.id}>
+                    {j.name}
+                  </Link>
                 </li>
               ))}
             </ul>
