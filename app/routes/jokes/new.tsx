@@ -1,48 +1,62 @@
-import type { ActionFunction } from "remix";
-import { redirect, useActionData } from "remix";
+import type { ActionFunction, LoaderFunction } from "remix";
+import { useActionData, redirect, useCatch, Link } from "remix";
 import { db } from "~/utils/db.server";
-import { requireUserId } from "~/utils/session.server";
+import { requireUserId, getUserId } from "~/utils/session.server";
 
-function validateJokeName(name: string) {
-  if (name.length < 3) {
-    return "Joke name must be at least 3 characters long";
+export let loader: LoaderFunction = async ({ request }) => {
+  let userId = await getUserId(request);
+  if (!userId) {
+    throw new Response("Unauthorized", { status: 401 });
   }
-}
+  return {};
+};
 
 function validateJokeContent(content: string) {
   if (content.length < 10) {
-    return "Joke content must be at least 10 characters long";
+    return `That joke is too short`;
+  }
+}
+
+function validateJokeName(name: string) {
+  if (name.length < 2) {
+    return `That joke's name is too short`;
   }
 }
 
 type ActionData = {
   formError?: string;
-  fields?: { name?: string; content?: string };
-  fieldErrors?: { name?: string; content?: string };
+  fieldErrors?: {
+    name: string | undefined;
+    content: string | undefined;
+  };
+  fields?: {
+    name: string;
+    content: string;
+  };
 };
 
 export let action: ActionFunction = async ({
   request,
 }): Promise<Response | ActionData> => {
   let userId = await requireUserId(request);
-
   let form = await request.formData();
   let name = form.get("name");
   let content = form.get("content");
   if (typeof name !== "string" || typeof content !== "string") {
-    return { formError: "Form submitted incorrectly" };
+    return { formError: `Form not submitted correctly.` };
   }
 
   let fieldErrors = {
     name: validateJokeName(name),
     content: validateJokeContent(content),
   };
+  let fields = { name, content };
   if (Object.values(fieldErrors).some(Boolean)) {
-    return { fieldErrors, fields: { name, content } };
+    return { fieldErrors, fields };
   }
 
   let joke = await db.joke.create({
-    data: { name, content, jokesterId: userId },
+    data: { ...fields, jokesterId: userId },
   });
   return redirect(`/jokes/${joke.id}`);
 };
@@ -105,6 +119,19 @@ export default function NewJokeRoute() {
       </form>
     </div>
   );
+}
+
+export function CatchBoundary() {
+  let caught = useCatch();
+
+  if (caught.status === 401) {
+    return (
+      <div className="error-container">
+        <p>You must be logged in to create a joke.</p>
+        <Link to="/login">Login</Link>
+      </div>
+    );
+  }
 }
 
 export function ErrorBoundary() {

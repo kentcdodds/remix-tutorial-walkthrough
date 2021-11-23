@@ -1,5 +1,5 @@
 import type { LinksFunction } from "remix";
-import { Links, LiveReload, Outlet } from "remix";
+import { Links, LiveReload, Outlet, useCatch } from "remix";
 
 import globalStylesUrl from "./styles/global.css";
 import globalMediumStylesUrl from "./styles/global-medium.css";
@@ -35,7 +35,7 @@ function Document({
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <title>Remix: So great, it's funny!</title>
+        <title>{title}</title>
         <Links />
       </head>
       <body>
@@ -50,6 +50,20 @@ export default function App() {
   return (
     <Document>
       <Outlet />
+    </Document>
+  );
+}
+
+export function CatchBoundary() {
+  let caught = useCatch();
+
+  return (
+    <Document title={`${caught.status} ${caught.statusText}`}>
+      <div className="error-container">
+        <h1>
+          {caught.status} {caught.statusText}
+        </h1>
+      </div>
     </Document>
   );
 }

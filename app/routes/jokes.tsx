@@ -30,7 +30,7 @@ export let loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function JokesRoute() {
-  let data = useLoaderData<LoaderData>();
+  let data = useLoaderData();
 
   return (
     <div className="jokes-layout">
