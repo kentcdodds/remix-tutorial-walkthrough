@@ -5,4 +5,5 @@ node_modules
 /public/build
 
 /prisma/dev.db
+/prisma/dev.db-journal
 .env
