@@ -1,4 +1,4 @@
-import type { ActionFunction, LinksFunction } from "remix";
+import type { ActionFunction, LinksFunction, MetaFunction } from "remix";
 import { useActionData, Link, useSearchParams } from "remix";
 import { db } from "~/utils/db.server";
 import { createUserSession, login, register } from "~/utils/session.server";
@@ -6,6 +6,13 @@ import stylesUrl from "../styles/login.css";
 
 export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
+};
+
+export let meta: MetaFunction = () => {
+  return {
+    title: "Remix Jokes | Login",
+    description: "Login to submit your own jokes to Remix Jokes!",
+  };
 };
 
 function validateUsername(username: unknown) {
@@ -62,8 +69,8 @@ export let action: ActionFunction = async ({
       let user = await login({ username, password });
       if (!user) {
         return {
-          formError: `Incorrect username or password`,
           fields,
+          formError: `Username/Password combination is incorrect`,
         };
       }
       return createUserSession(user.id, redirectTo);
@@ -78,7 +85,13 @@ export let action: ActionFunction = async ({
           formError: `User with username ${username} already exists`,
         };
       }
-      let user = await register({ username, password });
+      const user = await register({ username, password });
+      if (!user) {
+        return {
+          fields,
+          formError: `Something went wrong trying to create a new user.`,
+        };
+      }
       return createUserSession(user.id, redirectTo);
     }
     default: {
